@@ -14,14 +14,26 @@ class App extends Component {
     // TODO: make a reference to the task key in the firebase database
     // TODO: make your task ref listen for value changes
     //       and when they occur, set the state to the value of the snapshot
+    this.tasksRef = firebase.database().ref("tasks/")
+    this.tasksRef.on("value", (snapshot) => {
+      console.log(snapshot.val())
+      console.log("inside callback");
+      this.setState({tasks: snapshot.val()});
+    })
   }
 
   componentWillUnmount() {
     // TODO: close the listener when a client is about to leave
+    this.tasksRef.off()
   }
 
   toggleFinished(taskId){
     // TODO: toggle the task to complete and send it to firebase
+    let localTask = this.state.tasks[taskId];
+    this.tasksRef.child(taskId).update({
+      completed: !localTask.completed, 
+    })
+    .catch(err => console.log(err))
   }
 
   addTask(description){
@@ -29,6 +41,13 @@ class App extends Component {
     // TODO: if you don't see a task appearing, look at the console
     //       and be sure to set up open security rules
     //       https://info343.github.io/firebase.html#security-rules
+    let newTask = {
+      description: description,
+      completed: false
+    }
+
+    this.tasksRef.push(newTask)
+      .catch(err => console.log(err))
   }
 
   render() {
